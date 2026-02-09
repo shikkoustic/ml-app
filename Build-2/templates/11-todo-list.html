@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo List</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/11-todo-list.css') }}">
+  </head>
+
+  <body>
+    <a href="/dashboard" class="back-btn">
+      Back to Dashboard
+    </a>
+
+    <h2>Todo List</h2>
+
+    <div class="input-grid">
+      <input placeholder="Enter your task"
+        class="js-name-input name-input"
+        onkeydown="if(event.key === 'Enter') addTodo();">
+
+      <input type="date" class="js-dueDate due-date">
+      
+      <button onclick="addTodo();" class="add-button">Add</button>
+    </div>
+
+    <div class="js-todo-list todo-grid"></div>
+
+    <script src="{{ url_for('static', filename='script/todo.js') }}"></script>
+  </body>
+</html>
