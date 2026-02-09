@@ -18,10 +18,11 @@ app = Flask(__name__)
 app.secret_key = FLASK_KEY
 
 db = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password=DB_PASSWORD,
-    database="authSystem"
+    host=os.getenv("MYSQLHOST"),
+    user=os.getenv("MYSQLUSER"),
+    password=os.getenv("MYSQLPASSWORD"),
+    database=os.getenv("MYSQLDATABASE"),
+    port=int(os.getenv("MYSQLPORT"))
 )
 
 cursor = db.cursor(dictionary=True)
