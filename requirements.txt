@@ -125,3 +125,7 @@ wheel==0.44.0
 wrapt==2.0.1
 yarl==1.17.0
 yfinance==0.2.66
+flask
+mysql-connector-python
+python-dotenv
+werkzeug
