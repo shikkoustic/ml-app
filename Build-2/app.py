@@ -1,11 +1,12 @@
 from flask import Flask, request, render_template, redirect, url_for, session
 import random
-import smtplib
-from email.message import EmailMessage
 import mysql.connector
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
+
 
 load_dotenv()
 
@@ -49,15 +50,20 @@ def login():
             otp = random.randint(100000, 999999)
             otp_store[email] = otp
 
-            msg = EmailMessage()
-            msg.set_content(f"Your login OTP is: {otp}")
-            msg['Subject'] = 'OTP Verification'
-            msg['From'] = EMAIL_ADDRESS
-            msg['To'] = email
+            message = Mail(
+                from_email=EMAIL_ADDRESS,
+                to_emails=email,
+                subject='OTP Verification',
+                html_content=f'<strong>Your login OTP is: {otp}</strong>'
+            )
 
-            with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
-                smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
-                smtp.send_message(msg)
+            try:
+                sg = SendGridAPIClient(os.getenv("SENDGRID_API_KEY"))
+                sg.send(message)
+                print("OTP email sent")
+            except Exception as e:
+                print("SendGrid failed:", e)
+                print("OTP:", otp)
 
             return render_template('login.html', show_otp=True, email=email)
 
@@ -141,20 +147,22 @@ def forgot_password():
         otp = random.randint(100000, 999999)
         reset_otp_store[email] = otp
         
-        msg = EmailMessage()
-        msg.set_content(f"Your password reset OTP is: {otp}\n\nIf you didn't request this, please ignore this email.")
-        msg['Subject'] = 'Password Reset OTP'
-        msg['From'] = EMAIL_ADDRESS
-        msg['To'] = email
-        
+        message = Mail(
+            from_email=EMAIL_ADDRESS,
+            to_emails=email,
+            subject='Password Reset OTP',
+            html_content=f'<strong>Your password reset OTP is: {otp}</strong>'
+        )
+
         try:
-            with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
-                smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
-                smtp.send_message(msg)
-            
+            sg = SendGridAPIClient(os.getenv("SENDGRID_API_KEY"))
+            sg.send(message)
             return render_template('forgot-password.html', show_otp=True, email=email, success='OTP sent to your email')
         except Exception as e:
-            return render_template('forgot-password.html', error='Failed to send OTP. Please try again.')
+            print("SendGrid failed:", e)
+            print("Reset OTP:", otp)
+            return render_template('forgot-password.html', show_otp=True, email=email)
+
     
     return render_template('forgot-password.html')
 
