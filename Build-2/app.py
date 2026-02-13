@@ -15,7 +15,6 @@ FLASK_KEY = os.getenv("FLASK_KEY")
 app = Flask(__name__)
 app.secret_key = FLASK_KEY
 
-
 def get_db():
     return mysql.connector.connect(
         host=os.getenv("MYSQLHOST"),
@@ -25,7 +24,6 @@ def get_db():
         port=int(os.getenv("MYSQLPORT"))
     )
 
-
 otp_store = {}
 reset_otp_store = {}
 
@@ -33,7 +31,6 @@ reset_otp_store = {}
 @app.route('/')
 def index():
     return redirect(url_for('login'))
-
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -136,7 +133,7 @@ def register():
         cursor.close()
         db.close()
 
-        return render_template('login.html', success="Registration successful!")
+        return render_template('login.html', success="Registration successful! You can now login.")
 
     return render_template('register.html')
 
@@ -157,7 +154,7 @@ def forgot_password():
         db.close()
 
         if not user:
-            return render_template('forgot-password.html', error='Email not found')
+            return render_template('forgot-password.html', error='Email not found. Please register first.')
 
         otp = random.randint(100000, 999999)
         reset_otp_store[email] = otp
@@ -179,6 +176,16 @@ def forgot_password():
         return render_template('forgot-password.html', show_otp=True, email=email)
 
     return render_template('forgot-password.html')
+
+@app.route('/verify-reset-otp', methods=['POST'])
+def verify_reset_otp():
+    email = request.form['email']
+    user_otp = request.form['otp']
+
+    if email in reset_otp_store and str(reset_otp_store[email]) == user_otp:
+        return render_template('forgot-password.html', show_reset=True, email=email)
+
+    return render_template('forgot-password.html', show_otp=True, email=email, error='Invalid OTP')
 
 
 @app.route('/reset-password', methods=['POST'])
@@ -206,15 +213,31 @@ def reset_password():
 
     return render_template('login.html', success='Password reset successful!')
 
+
 @app.route('/dashboard')
 def dashboard():
     if 'user_email' not in session:
         return redirect(url_for("login"))
 
-    return render_template('dashboard.html',
-                           user_email=session.get('user_email'),
-                           user_name=session.get('user_name', 'User'))
+    return render_template(
+        'dashboard.html',
+        user_email=session.get('user_email'),
+        user_name=session.get('user_name', 'User')
+    )
 
+@app.route('/todo')
+def todo():
+    if 'user_email' not in session:
+        return redirect(url_for("login"))
+
+    return render_template('11-todo-list.html')
+
+@app.route('/rps_game')
+def rps_game():
+    if 'user_email' not in session:
+        return redirect(url_for("login"))
+
+    return render_template('rock-paper-scissor-game.html')
 
 @app.route('/logout')
 def logout():
