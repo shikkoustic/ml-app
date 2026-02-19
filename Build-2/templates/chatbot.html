@@ -164,4 +164,13 @@ async function sendMessage() {
 
         chatBox.scrollTop = chatBox.scrollHeight;
 
+    } catch (error) {
+        chatBox.innerHTML += `
+            <div class="message bot">Error connecting to AI.</div>
+        `;
     }
+}
+</script>
+
+</body>
+</html>
